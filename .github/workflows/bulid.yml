@@ -1,4 +1,4 @@
-name: Unpack ZIP and Build APK
+name: Debug and Build APK
 
 on:
   push:
@@ -13,14 +13,20 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Unpack ZIP to Workspace Root
+      - name: List Repository Contents (Debug)
         run: |
+          echo "=== Root Directory Contents ==="
+          ls -la
+          
           ZIP_FILE=$(ls *.zip 2>/dev/null | head -n 1)
           if [ -n "$ZIP_FILE" ]; then
-            echo "Unpacking $ZIP_FILE..."
+            echo "Found ZIP: $ZIP_FILE"
+            mkdir -p extracted_files
             unzip -o "$ZIP_FILE" -d extracted_files
+            echo "=== Extracted Contents ==="
+            ls -la extracted_files
           else
-            echo "No zip file found."
+            echo "No ZIP file found in root!"
           fi
 
       - name: Set up JDK 17
@@ -31,15 +37,14 @@ jobs:
 
       - name: Find and Build APK
         run: |
-          # البحث الشامل عن مسار ملف gradlew بغض النظر عن عدد المجلدات المتداخلة
           GRADLEW_PATH=$(find . -name "gradlew" -type f | head -n 1)
           
           if [ -z "$GRADLEW_PATH" ]; then
             echo "Error: gradlew file not found anywhere in the repository!"
+            echo "Make sure your ZIP file contains a complete Android Studio project structure with gradlew."
             exit 1
-          fi
+          }
           
-          # استخراج مجلد المشروع الذي يحتوي على الـ gradlew
           PROJECT_DIR=$(dirname "$GRADLEW_PATH")
           echo "Found project directory at: $PROJECT_DIR"
           
