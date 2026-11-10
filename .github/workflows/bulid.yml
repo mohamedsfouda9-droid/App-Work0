@@ -18,13 +18,13 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build Debug APK
+      - name: Build Debug APK with Stacktrace
         run: |
           chmod +x ./gradlew || true
           if [ -f "./gradlew" ]; then
-            ./gradlew assembleDebug --stacktrace
+            ./gradlew assembleDebug --stacktrace --info
           else
-            gradle assembleDebug --stacktrace
+            gradle assembleDebug --stacktrace --info
           fi
 
       - name: Upload APK Artifact
