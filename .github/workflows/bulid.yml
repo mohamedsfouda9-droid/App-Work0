@@ -18,13 +18,19 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup exact compatible Gradle version
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          gradle-version: '7.5'
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
-      - name: Build Debug APK
-        run: gradle assembleDebug --no-daemon --stacktrace
+      - name: Make Gradle Wrapper Executable and Build
+        run: |
+          if [ -f "./gradlew" ]; then
+            chmod +x ./gradlew
+            ./gradlew assembleDebug --no-daemon
+          else
+            # إذا لم يكن الملف موجوداً في الجذر، سنقوم بتوليد مشروع أو استخدام بناء مباشر
+            gradle wrapper --gradle-version 7.5
+            ./gradlew assembleDebug --no-daemon
+          fi
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
