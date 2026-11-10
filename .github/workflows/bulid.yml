@@ -18,14 +18,11 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build Debug APK with Stacktrace
-        run: |
-          chmod +x ./gradlew || true
-          if [ -f "./gradlew" ]; then
-            ./gradlew assembleDebug --stacktrace --info
-          else
-            gradle assembleDebug --stacktrace --info
-          fi
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Debug APK with Gradle Wrapper
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
