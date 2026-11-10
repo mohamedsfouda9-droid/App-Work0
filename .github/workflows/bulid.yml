@@ -18,18 +18,18 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Make Gradle Wrapper Executable and Build
+      - name: Setup Android SDK Environment
         run: |
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+          echo "y" | sudo /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --install "platforms;android-33" "build-tools;33.0.2" || true
+
+      - name: Build Debug APK
+        run: |
+          chmod +x ./gradlew || true
           if [ -f "./gradlew" ]; then
-            chmod +x ./gradlew
-            ./gradlew assembleDebug --no-daemon
+            ./gradlew assembleDebug --no-daemon --stacktrace
           else
-            # إذا لم يكن الملف موجوداً في الجذر، سنقوم بتوليد مشروع أو استخدام بناء مباشر
-            gradle wrapper --gradle-version 7.5
-            ./gradlew assembleDebug --no-daemon
+            gradle assembleDebug --no-daemon --stacktrace
           fi
 
       - name: Upload APK Artifact
