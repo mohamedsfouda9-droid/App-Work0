@@ -18,9 +18,9 @@ jobs:
           ZIP_FILE=$(ls *.zip 2>/dev/null | head -n 1)
           if [ -n "$ZIP_FILE" ]; then
             echo "Unpacking $ZIP_FILE..."
-            unzip -o "$ZIP_FILE" -d .
+            unzip -o "$ZIP_FILE" -d extracted_files
           else
-            echo "No zip file found in root, proceeding with existing files."
+            echo "No zip file found."
           fi
 
       - name: Set up JDK 17
@@ -29,28 +29,22 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Make gradlew executable
+      - name: Find and Build APK
         run: |
-          if [ -f "gradlew" ]; then
-            chmod +x gradlew
-          else
-            # في حال تم استخراج المشروع داخل مجلد فرعي داخل الـ ZIP
-            SUB_DIR=$(find . -mindepth 2 -maxdepth 2 -name "gradlew" -exec dirname {} \;)
-            if [ -n "$SUB_DIR" ]; then
-              cd "$SUB_DIR"
-              chmod +x gradlew
-              echo "PROJECT_DIR=$SUB_DIR" >> $GITHUB_ENV
-            else
-              echo "Error: gradlew file not found after unzipping."
-              exit 1
-            fi
+          # البحث الشامل عن مسار ملف gradlew بغض النظر عن عدد المجلدات المتداخلة
+          GRADLEW_PATH=$(find . -name "gradlew" -type f | head -n 1)
+          
+          if [ -z "$GRADLEW_PATH" ]; then
+            echo "Error: gradlew file not found anywhere in the repository!"
+            exit 1
           fi
-
-      - name: Build Debug APK
-        run: |
-          if [ -n "$PROJECT_DIR" ]; then
-            cd "$PROJECT_DIR"
-          fi
+          
+          # استخراج مجلد المشروع الذي يحتوي على الـ gradlew
+          PROJECT_DIR=$(dirname "$GRADLEW_PATH")
+          echo "Found project directory at: $PROJECT_DIR"
+          
+          cd "$PROJECT_DIR"
+          chmod +x gradlew
           ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK Artifact
